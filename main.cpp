@@ -1,12 +1,19 @@
+/*
+  Code By:无名侠
+*/
 #include <stdio.h>
 #include <elf.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-Elf32_Addr VaToFa(int fd,Elf32_Addr va)
+Elf32_Addr VaToFa(int fd,Elf32_Addr rva)
 {
-  /*顾名思义*/
+  /*顾名思义
+    fd - 打开的so文件句柄
+    rva - 欲转换的地址
+    return - rva的文件偏移
+  */
   int old;
   int pnum;
   Elf32_Ehdr ehdr;
@@ -15,13 +22,13 @@ Elf32_Addr VaToFa(int fd,Elf32_Addr va)
   lseek(fd,0,SEEK_SET);
   read(fd,&ehdr,sizeof(Elf32_Ehdr));
   pnum = ehdr.e_phnum;
-  result = va;
+  result = rva;
   for(int i = 0;i<pnum;i++)
   {
     Elf32_Phdr phdr;
     read(fd,&phdr,sizeof(Elf32_Phdr));
-    if(va>=phdr.p_vaddr && va<phdr.p_vaddr+phdr.p_memsz)
-      result =  va-phdr.p_vaddr+phdr.p_offset;
+    if(rva>=phdr.p_vaddr && rva<phdr.p_vaddr+phdr.p_memsz)
+      result =  rva-phdr.p_vaddr+phdr.p_offset;
   }
   lseek(fd,old,SEEK_SET);
   return result;
